@@ -1,9 +1,8 @@
 import { Navigation } from '@/components/navigation'
-import { PlayerBar } from '@/components/player-bar'
 import { SearchBar } from '@/components/search-bar'
 import { SongCard } from '@/components/song-card'
 import { ArtistCard } from '@/components/artist-card'
-import { trendingSongs, artists } from '@/lib/music-data'
+import { songs, artists } from '@/data/mockData'
 import { Search, TrendingUp, Users, Music } from 'lucide-react'
 
 export default function SearchPage() {
@@ -64,7 +63,7 @@ export default function SearchPage() {
             <h2 className="text-2xl font-bold text-foreground">Trending Searches</h2>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {trendingSongs.slice(0, 5).map((song) => (
+            {([...songs].sort((a,b)=>b.likes-a.likes)).slice(0, 5).map((song) => (
               <SongCard key={song.id} song={song} />
             ))}
           </div>
@@ -85,8 +84,6 @@ export default function SearchPage() {
           </div>
         </section>
       </main>
-
-      <PlayerBar />
     </div>
   )
 }

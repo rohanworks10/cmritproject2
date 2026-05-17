@@ -2,7 +2,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
-import { PlayerBar } from '@/components/player-bar'
 import { getArtistById, getInterviewById, interviews } from '@/data/mockData'
 import { ArrowLeft, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -74,7 +73,6 @@ export default async function InterviewDetailPage({ params }: InterviewPageProps
         </article>
       </main>
 
-      <PlayerBar />
     </div>
   )
 }

@@ -2,10 +2,19 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Artist, formatPlays } from '@/lib/music-data'
+import { BadgeCheck } from 'lucide-react'
+
+export interface MockArtist {
+  id: string
+  name: string
+  bio: string
+  verified: boolean
+  genre: string
+  image: string
+}
 
 interface ArtistCardProps {
-  artist: Artist
+  artist: MockArtist
 }
 
 export function ArtistCard({ artist }: ArtistCardProps) {
@@ -16,7 +25,7 @@ export function ArtistCard({ artist }: ArtistCardProps) {
     >
       <div className="relative mx-auto mb-4 aspect-square w-full max-w-40 overflow-hidden rounded-full">
         <Image
-          src={artist.imageUrl}
+          src={artist.image}
           alt={artist.name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -24,10 +33,11 @@ export function ArtistCard({ artist }: ArtistCardProps) {
         />
       </div>
       <div className="text-center">
-        <h3 className="truncate font-semibold text-foreground">{artist.name}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {formatPlays(artist.monthlyListeners)} monthly listeners
-        </p>
+        <div className="flex items-center justify-center gap-1.5">
+          <h3 className="truncate font-semibold text-foreground">{artist.name}</h3>
+          {artist.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" />}
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">{artist.genre}</p>
       </div>
     </Link>
   )

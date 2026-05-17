@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { trendingSongs, newReleases } from '@/lib/music-data'
+import { songs } from '@/data/mockData'
 import { SongCard } from './song-card'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,7 @@ export function SearchBar() {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
 
-  const allSongs = [...trendingSongs, ...newReleases]
+  const allSongs = songs
   const filteredSongs = query
     ? allSongs.filter(
         (song) =>

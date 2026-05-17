@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { Navbar } from '@/components/navbar'
-import { PlayerBar } from '@/components/player-bar'
 import { interviews, getArtistById } from '@/data/mockData'
 import { Mic2 } from 'lucide-react'
 
@@ -51,7 +50,6 @@ export default function InterviewsPage() {
         </div>
       </main>
 
-      <PlayerBar />
     </div>
   )
 }

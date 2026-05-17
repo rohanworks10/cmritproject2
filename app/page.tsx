@@ -1,11 +1,13 @@
 import { Navigation } from '@/components/navigation'
-import { PlayerBar } from '@/components/player-bar'
 import { SongCard } from '@/components/song-card'
 import { ArtistCard } from '@/components/artist-card'
-import { trendingSongs, newReleases, artists } from '@/lib/music-data'
+import { songs, artists } from '@/data/mockData'
 import { TrendingUp, Sparkles, Users } from 'lucide-react'
 
 export default function HomePage() {
+  const trending = [...songs].sort((a, b) => b.likes - a.likes)
+  const newReleases = songs.slice(0, 4)
+
   return (
     <div className="min-h-screen pb-28">
       <Navigation />
@@ -41,7 +43,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {trendingSongs.slice(0, 5).map((song) => (
+            {trending.slice(0, 5).map((song) => (
               <SongCard key={song.id} song={song} />
             ))}
           </div>
@@ -59,10 +61,10 @@ export default function HomePage() {
             </div>
           </div>
           <div className="rounded-xl border border-border bg-card">
-            {trendingSongs.map((song, index) => (
+            {trending.map((song, index) => (
               <div
                 key={song.id}
-                className={index < trendingSongs.length - 1 ? 'border-b border-border' : ''}
+                className={index < trending.length - 1 ? 'border-b border-border' : ''}
               >
                 <SongCard song={song} variant="list" showRank={index + 1} />
               </div>
@@ -106,8 +108,6 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-
-      <PlayerBar />
     </div>
   )
 }

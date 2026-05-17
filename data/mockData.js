@@ -33,6 +33,9 @@ export const artists = [
   },
 ];
 
+const DEFAULT_AUDIO_URL =
+  "https://res.cloudinary.com/dxxvf29gt/video/upload/v1779004696/mfcc-demo-music-upbeat-exciting-vlog-background-intro-theme-328256_o0utpy.mp3";
+
 export const songs = [
   {
     id: "song-1",
@@ -43,6 +46,8 @@ export const songs = [
     cover: "https://picsum.photos/seed/midnight-dreams/300/300",
     duration: "3:42",
     likes: 12840,
+    audioUrl:
+      "https://res.cloudinary.com/dxxvf29gt/video/upload/v1779004696/mfcc-demo-music-upbeat-exciting-vlog-background-intro-theme-328256_o0utpy.mp3",
   },
   {
     id: "song-2",
@@ -53,6 +58,8 @@ export const songs = [
     cover: "https://picsum.photos/seed/starlight-serenade/300/300",
     duration: "4:08",
     likes: 9620,
+    audioUrl:
+      "https://res.cloudinary.com/dxxvf29gt/video/upload/v1779004687/momotmusic-a-product-demo-167264_v3ouub.mp3",
   },
   {
     id: "song-3",
@@ -63,6 +70,8 @@ export const songs = [
     cover: "https://picsum.photos/seed/electric-soul/300/300",
     duration: "4:15",
     likes: 18450,
+    audioUrl:
+      "https://res.cloudinary.com/dxxvf29gt/video/upload/v1779004673/momotmusic-business-168341_1_vxsbeo.mp3",
   },
   {
     id: "song-4",
@@ -73,6 +82,8 @@ export const songs = [
     cover: "https://picsum.photos/seed/neon-lights/300/300",
     duration: "3:35",
     likes: 11230,
+    audioUrl:
+      "https://res.cloudinary.com/dxxvf29gt/video/upload/v1779004662/momotmusic-corporate-inspiring-222800_wi1sk4.mp3",
   },
   {
     id: "song-5",
@@ -83,6 +94,7 @@ export const songs = [
     cover: "https://picsum.photos/seed/ocean-waves/300/300",
     duration: "3:58",
     likes: 5870,
+    audioUrl: DEFAULT_AUDIO_URL,
   },
   {
     id: "song-6",
@@ -93,6 +105,7 @@ export const songs = [
     cover: "https://picsum.photos/seed/urban-jungle/300/300",
     duration: "3:22",
     likes: 22100,
+    audioUrl: DEFAULT_AUDIO_URL,
   },
 ];
 

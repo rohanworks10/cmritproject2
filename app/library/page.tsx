@@ -1,16 +1,15 @@
 import { Navigation } from '@/components/navigation'
-import { PlayerBar } from '@/components/player-bar'
 import { SongCard } from '@/components/song-card'
-import { trendingSongs, newReleases } from '@/lib/music-data'
+import { songs } from '@/data/mockData'
 import { Library, ListMusic, Clock, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function LibraryPage() {
   const playlists = [
-    { name: 'Chill Vibes', songCount: 24, image: trendingSongs[0].coverUrl },
-    { name: 'Workout Mix', songCount: 18, image: trendingSongs[2].coverUrl },
-    { name: 'Late Night Jams', songCount: 32, image: trendingSongs[4].coverUrl },
-    { name: 'Road Trip', songCount: 45, image: newReleases[0].coverUrl },
+    { name: 'Chill Vibes', songCount: 24, image: songs[0].cover },
+    { name: 'Workout Mix', songCount: 18, image: songs[2].cover },
+    { name: 'Late Night Jams', songCount: 32, image: songs[4].cover },
+    { name: 'Road Trip', songCount: 45, image: songs[5].cover },
   ]
 
   return (
@@ -71,7 +70,7 @@ export default function LibraryPage() {
             <h2 className="text-2xl font-bold text-foreground">Recently Played</h2>
           </div>
           <div className="rounded-xl border border-border bg-card">
-            {[...trendingSongs.slice(0, 4), ...newReleases.slice(0, 2)].map((song, index, arr) => (
+            {songs.slice(0, 6).map((song, index, arr) => (
               <div key={song.id} className={index < arr.length - 1 ? 'border-b border-border' : ''}>
                 <SongCard song={song} variant="list" />
               </div>
@@ -80,7 +79,6 @@ export default function LibraryPage() {
         </section>
       </main>
 
-      <PlayerBar />
     </div>
   )
 }

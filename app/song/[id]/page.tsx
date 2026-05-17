@@ -2,10 +2,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
-import { PlayerBar } from '@/components/player-bar'
 import { ReviewsSection } from '@/components/reviews-section'
 import { SongCard } from '@/components/song-card'
-import { trendingSongs, newReleases, reviews, formatPlays } from '@/lib/music-data'
+import { getSongById, songs, formatLikes } from '@/data/mockData'
 import { Play, Heart, Share2, MoreHorizontal, Clock, Music, Disc3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -15,15 +14,16 @@ interface SongPageProps {
 
 export default async function SongPage({ params }: SongPageProps) {
   const { id } = await params
-  const allSongs = [...trendingSongs, ...newReleases]
-  const song = allSongs.find((s) => s.id === id)
+  const song = getSongById(id)
 
   if (!song) {
     notFound()
   }
 
-  // Get related songs (same artist or similar)
-  const relatedSongs = allSongs.filter((s) => s.id !== song.id).slice(0, 4)
+  const relatedSongs =
+    songs.filter((s) => s.id !== song.id && s.artistId === song.artistId).length > 0
+      ? songs.filter((s) => s.id !== song.id && s.artistId === song.artistId)
+      : songs.filter((s) => s.id !== song.id).slice(0, 4)
 
   return (
     <div className="min-h-screen pb-28">
@@ -34,7 +34,7 @@ export default async function SongPage({ params }: SongPageProps) {
         <section className="relative">
           <div className="absolute inset-0 h-[28rem] overflow-hidden">
             <Image
-              src={song.coverUrl}
+              src={song.cover}
               alt={song.title}
               fill
               className="object-cover opacity-40 blur-3xl"
@@ -47,7 +47,7 @@ export default async function SongPage({ params }: SongPageProps) {
             <div className="flex flex-col items-center gap-8 md:flex-row md:items-end">
               <div className="relative aspect-square w-64 shrink-0 overflow-hidden rounded-xl shadow-2xl sm:w-72">
                 <Image
-                  src={song.coverUrl}
+                  src={song.cover}
                   alt={song.title}
                   fill
                   className="object-cover"
@@ -72,7 +72,7 @@ export default async function SongPage({ params }: SongPageProps) {
                   <span>•</span>
                   <span>{song.album}</span>
                   <span>•</span>
-                  <span>{formatPlays(song.plays)} plays</span>
+                  <span>{formatLikes(song.likes)} likes</span>
                 </div>
                 <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground md:justify-start">
                   <div className="flex items-center gap-1.5">
@@ -142,7 +142,7 @@ Just you and me, meant to be...`}
 
           {/* Reviews Section */}
           <section className="mb-12">
-            <ReviewsSection reviews={reviews} songTitle={song.title} />
+            <ReviewsSection songId={song.id} songTitle={song.title} />
           </section>
 
           {/* Related Songs */}
@@ -157,14 +157,12 @@ Just you and me, meant to be...`}
         </div>
       </main>
 
-      <PlayerBar />
     </div>
   )
 }
 
 export function generateStaticParams() {
-  const allSongs = [...trendingSongs, ...newReleases]
-  return allSongs.map((song) => ({
+  return songs.map((song) => ({
     id: song.id,
   }))
 }
