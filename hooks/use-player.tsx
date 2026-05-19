@@ -9,9 +9,9 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { songs as playlist } from '@/data/mockData'
+import { songs as allSongs } from '@/data/mockData'
 
-export type PlayerSong = (typeof playlist)[number]
+export type PlayerSong = (typeof allSongs)[number]
 
 interface PlayerContextValue {
   currentSong: PlayerSong | null
@@ -20,6 +20,7 @@ interface PlayerContextValue {
   duration: number
   volume: number
   isMuted: boolean
+  userPlaylist: PlayerSong[]
   playSong: (song: PlayerSong) => void
   togglePlay: () => void
   playNext: () => void
@@ -27,6 +28,8 @@ interface PlayerContextValue {
   seek: (time: number) => void
   setVolume: (volume: number) => void
   toggleMute: () => void
+  addToPlaylist: (song: PlayerSong) => void
+  removeFromPlaylist: (songId: string) => void
 }
 
 const PlayerContext = createContext<PlayerContextValue | null>(null)
@@ -49,19 +52,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [duration, setDuration] = useState(0)
   const [volume, setVolumeState] = useState(0.75)
   const [isMuted, setIsMuted] = useState(false)
+  const [userPlaylist, setUserPlaylist] = useState<PlayerSong[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const saved = localStorage.getItem('userPlaylist')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
 
   currentSongRef.current = currentSong
 
   const playNext = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
-
     const index = currentSongRef.current
-      ? playlist.findIndex((s) => s.id === currentSongRef.current!.id)
+      ? allSongs.findIndex((s) => s.id === currentSongRef.current!.id)
       : -1
-    const nextIndex = index < playlist.length - 1 ? index + 1 : 0
-    const nextSong = playlist[nextIndex]
-
+    const nextIndex = index < allSongs.length - 1 ? index + 1 : 0
+    const nextSong = allSongs[nextIndex]
     setCurrentSong(nextSong)
     audio.src = nextSong.audioUrl
     audio.currentTime = 0
@@ -110,7 +118,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const playSong = useCallback((song: PlayerSong) => {
     const audio = audioRef.current
     if (!audio) return
-
     setCurrentSong(song)
     audio.src = song.audioUrl
     audio.currentTime = 0
@@ -121,22 +128,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const playPrevious = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
-
     if (!currentSongRef.current) {
-      playSong(playlist[playlist.length - 1])
+      playSong(allSongs[allSongs.length - 1])
       return
     }
-
     if (audio.currentTime > 3) {
       audio.currentTime = 0
       setCurrentTime(0)
       return
     }
-
-    const index = playlist.findIndex((s) => s.id === currentSongRef.current!.id)
-    const prevIndex = index > 0 ? index - 1 : playlist.length - 1
-    const prevSong = playlist[prevIndex]
-
+    const index = allSongs.findIndex((s) => s.id === currentSongRef.current!.id)
+    const prevIndex = index > 0 ? index - 1 : allSongs.length - 1
+    const prevSong = allSongs[prevIndex]
     setCurrentSong(prevSong)
     audio.src = prevSong.audioUrl
     audio.currentTime = 0
@@ -147,12 +150,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const togglePlay = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
-
     if (!currentSongRef.current) {
-      playSong(playlist[0])
+      playSong(allSongs[0])
       return
     }
-
     if (audio.paused) {
       audio.play().catch(() => setIsPlaying(false))
     } else {
@@ -188,6 +189,23 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     })
   }, [volume])
 
+  const addToPlaylist = useCallback((song: PlayerSong) => {
+    setUserPlaylist((prev) => {
+      if (prev.find((s) => s.id === song.id)) return prev
+      const updated = [...prev, song]
+      localStorage.setItem('userPlaylist', JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
+  const removeFromPlaylist = useCallback((songId: string) => {
+    setUserPlaylist((prev) => {
+      const updated = prev.filter((s) => s.id !== songId)
+      localStorage.setItem('userPlaylist', JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
   const value: PlayerContextValue = {
     currentSong,
     isPlaying,
@@ -195,6 +213,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     duration,
     volume,
     isMuted,
+    userPlaylist,
     playSong,
     togglePlay,
     playNext,
@@ -202,6 +221,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     seek,
     setVolume,
     toggleMute,
+    addToPlaylist,
+    removeFromPlaylist,
   }
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>
@@ -209,8 +230,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
 export function usePlayer() {
   const context = useContext(PlayerContext)
-  if (!context) {
-    throw new Error('usePlayer must be used within a PlayerProvider')
-  }
+  if (!context) throw new Error('usePlayer must be used within a PlayerProvider')
   return context
 }

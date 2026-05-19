@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, Library, Heart, Music2, Menu, X } from 'lucide-react'
+import { Home, Search, Library, Heart, Music2, Menu, X, ListMusic } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SearchBar } from './search-bar'
 
@@ -12,6 +12,8 @@ const navItems = [
   { href: '/search', label: 'Search', icon: Search },
   { href: '/library', label: 'Library', icon: Library },
   { href: '/liked', label: 'Liked Songs', icon: Heart },
+  { href: '/playlist', label: 'Playlist', icon: ListMusic },
+  { href: '/interviews', label: 'Interviews', icon: Music2 },
 ]
 
 export function Navigation() {
@@ -21,7 +23,6 @@ export function Navigation() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Music2 className="h-5 w-5 text-primary-foreground" />
@@ -29,7 +30,6 @@ export function Navigation() {
           <span className="hidden text-xl font-bold text-foreground sm:inline">Soundwave</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => (
             <Link
@@ -48,12 +48,10 @@ export function Navigation() {
           ))}
         </nav>
 
-        {/* Search Bar - Desktop */}
         <div className="hidden flex-1 justify-center lg:flex">
           <SearchBar />
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
@@ -62,7 +60,6 @@ export function Navigation() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="border-t border-border bg-background p-4 md:hidden">
           <div className="mb-4">

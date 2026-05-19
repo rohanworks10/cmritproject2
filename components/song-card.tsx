@@ -50,8 +50,9 @@ function LikeButton({ song }: { song: PlayerSong }) {
 }
 
 export function SongCard({ song, variant = 'default', showRank }: SongCardProps) {
-  const { currentSong, isPlaying, playSong, togglePlay } = usePlayer()
+  const { currentSong, isPlaying, playSong, togglePlay, addToPlaylist } = usePlayer()
   const [isHovered, setIsHovered] = useState(false)
+  const [toastVisible, setToastVisible] = useState(false)
 
   const isCurrentSong = currentSong?.id === song.id
   const showAsPlaying = isCurrentSong && isPlaying
@@ -68,6 +69,14 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
 
   const handleCardClick = () => {
     playSong(song)
+  }
+
+  const handleAddToPlaylist = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    addToPlaylist(song)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), 2000)
   }
 
   const stopNav = (e: React.MouseEvent) => {
@@ -95,10 +104,7 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
           <Link href={`/song/${song.id}`} className="block truncate font-medium text-foreground hover:underline">
             {song.title}
           </Link>
-          <Link
-            href={`/artist/${song.artistId}`}
-            className="block truncate text-sm text-muted-foreground hover:underline"
-          >
+          <Link href={`/artist/${song.artistId}`} className="block truncate text-sm text-muted-foreground hover:underline">
             {song.artist}
           </Link>
         </div>
@@ -107,11 +113,7 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
           onClick={handlePlay}
           className="rounded-full bg-primary p-2 text-primary-foreground transition-transform hover:scale-105"
         >
-          {showAsPlaying ? (
-            <Pause className="h-4 w-4" />
-          ) : (
-            <Play className="h-4 w-4 fill-current" />
-          )}
+          {showAsPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
         </button>
       </div>
     )
@@ -146,11 +148,7 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
               isHovered || isCurrentSong ? 'opacity-100' : 'opacity-0'
             )}
           >
-            {showAsPlaying ? (
-              <Pause className="h-6 w-6 text-white" />
-            ) : (
-              <Play className="h-6 w-6 fill-white text-white" />
-            )}
+            {showAsPlaying ? <Pause className="h-6 w-6 text-white" /> : <Play className="h-6 w-6 fill-white text-white" />}
           </button>
         </div>
         <div className="min-w-0 flex-1" onClick={stopNav}>
@@ -174,6 +172,9 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleAddToPlaylist}>
+                ➕ Add to playlist
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/artist/${song.artistId}`}>Go to artist</Link>
               </DropdownMenuItem>
@@ -199,6 +200,11 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {toastVisible && (
+        <div className="absolute top-2 left-2 right-2 z-10 rounded-lg bg-primary px-3 py-2 text-center text-xs font-medium text-primary-foreground shadow-lg">
+          ✓ Added to playlist
+        </div>
+      )}
       <div className="relative mb-4 aspect-square overflow-hidden rounded-lg">
         <Image
           src={song.cover}
@@ -226,7 +232,17 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
           <Link href={`/artist/${song.artistId}`} className="min-w-0 hover:underline">
             <p className="truncate text-sm text-muted-foreground">{song.artist}</p>
           </Link>
-          <LikeButton song={song} />
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleAddToPlaylist}
+              className="rounded-full p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+              title="Add to playlist"
+            >
+              ➕
+            </button>
+            <LikeButton song={song} />
+          </div>
         </div>
       </div>
     </div>
