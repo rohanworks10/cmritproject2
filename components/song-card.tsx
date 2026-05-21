@@ -3,16 +3,19 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Play, Pause, Heart, MoreHorizontal } from 'lucide-react'
+import { Play, Pause, Heart, MoreHorizontal, ListPlus, ChevronRight } from 'lucide-react'
 import { formatLikes } from '@/data/mockData'
 import { usePlayer, type PlayerSong } from '@/hooks/use-player'
+import { usePlaylist } from '@/contexts/playlist-context'
 import { useLikedSongs } from '@/hooks/use-liked-songs'
+import { AddToPlaylistDialog } from '@/components/playlists/add-to-playlist-dialog'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -49,10 +52,44 @@ function LikeButton({ song }: { song: PlayerSong }) {
   )
 }
 
+function PlaylistMenuItems({
+  song,
+  onAddToPlaylist,
+}: {
+  song: PlayerSong
+  onAddToPlaylist: () => void
+}) {
+  const { addToQuickPlaylist } = usePlaylist()
+
+  return (
+    <>
+      <DropdownMenuItem
+        onClick={(e) => {
+          e.stopPropagation()
+          addToQuickPlaylist(song)
+        }}
+      >
+        <ListPlus className="mr-2 h-4 w-4" />
+        Add to Quick Playlist
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={(e) => {
+          e.stopPropagation()
+          onAddToPlaylist()
+        }}
+      >
+        <ChevronRight className="mr-2 h-4 w-4" />
+        Add to playlist...
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+    </>
+  )
+}
+
 export function SongCard({ song, variant = 'default', showRank }: SongCardProps) {
-  const { currentSong, isPlaying, playSong, togglePlay, addToPlaylist } = usePlayer()
+  const { currentSong, isPlaying, playSong, togglePlay } = usePlayer()
   const [isHovered, setIsHovered] = useState(false)
-  const [toastVisible, setToastVisible] = useState(false)
+  const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false)
 
   const isCurrentSong = currentSong?.id === song.id
   const showAsPlaying = isCurrentSong && isPlaying
@@ -71,20 +108,21 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
     playSong(song)
   }
 
-  const handleAddToPlaylist = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    addToPlaylist(song)
-    setToastVisible(true)
-    setTimeout(() => setToastVisible(false), 2000)
-  }
-
   const stopNav = (e: React.MouseEvent) => {
     e.stopPropagation()
   }
 
+  const playlistDialogEl = (
+    <AddToPlaylistDialog
+      song={song}
+      open={playlistDialogOpen}
+      onOpenChange={setPlaylistDialogOpen}
+    />
+  )
+
   if (variant === 'compact') {
     return (
+      <>
       <div
         role="button"
         tabIndex={0}
@@ -108,6 +146,24 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
             {song.artist}
           </Link>
         </div>
+        <div onClick={stopNav}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <PlaylistMenuItems
+                song={song}
+                onAddToPlaylist={() => setPlaylistDialogOpen(true)}
+              />
+              <DropdownMenuItem asChild>
+                <Link href={`/artist/${song.artistId}`}>Go to artist</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <button
           type="button"
           onClick={handlePlay}
@@ -116,11 +172,14 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
           {showAsPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
         </button>
       </div>
+      {playlistDialogEl}
+      </>
     )
   }
 
   if (variant === 'list') {
     return (
+      <>
       <div
         role="button"
         tabIndex={0}
@@ -148,7 +207,11 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
               isHovered || isCurrentSong ? 'opacity-100' : 'opacity-0'
             )}
           >
-            {showAsPlaying ? <Pause className="h-6 w-6 text-white" /> : <Play className="h-6 w-6 fill-white text-white" />}
+            {showAsPlaying ? (
+              <Pause className="h-6 w-6 text-white" />
+            ) : (
+              <Play className="h-6 w-6 fill-white text-white" />
+            )}
           </button>
         </div>
         <div className="min-w-0 flex-1" onClick={stopNav}>
@@ -172,9 +235,10 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleAddToPlaylist}>
-                ➕ Add to playlist
-              </DropdownMenuItem>
+              <PlaylistMenuItems
+                song={song}
+                onAddToPlaylist={() => setPlaylistDialogOpen(true)}
+              />
               <DropdownMenuItem asChild>
                 <Link href={`/artist/${song.artistId}`}>Go to artist</Link>
               </DropdownMenuItem>
@@ -182,10 +246,13 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
           </DropdownMenu>
         </div>
       </div>
+      {playlistDialogEl}
+      </>
     )
   }
 
   return (
+    <>
     <div
       role="button"
       tabIndex={0}
@@ -200,11 +267,6 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {toastVisible && (
-        <div className="absolute top-2 left-2 right-2 z-10 rounded-lg bg-primary px-3 py-2 text-center text-xs font-medium text-primary-foreground shadow-lg">
-          ✓ Added to playlist
-        </div>
-      )}
       <div className="relative mb-4 aspect-square overflow-hidden rounded-lg">
         <Image
           src={song.cover}
@@ -233,18 +295,25 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
             <p className="truncate text-sm text-muted-foreground">{song.artist}</p>
           </Link>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={handleAddToPlaylist}
-              className="rounded-full p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-              title="Add to playlist"
-            >
-              ➕
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" title="Add to playlist">
+                  <ListPlus className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <PlaylistMenuItems
+                song={song}
+                onAddToPlaylist={() => setPlaylistDialogOpen(true)}
+              />
+              </DropdownMenuContent>
+            </DropdownMenu>
             <LikeButton song={song} />
           </div>
         </div>
       </div>
     </div>
+    {playlistDialogEl}
+    </>
   )
 }

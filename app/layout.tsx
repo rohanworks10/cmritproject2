@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { PlaylistProvider } from '@/contexts/playlist-context'
 import { PlayerProvider } from '@/hooks/use-player'
 import { PlayerBar } from '@/components/player-bar'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -39,10 +41,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background">
       <body className="font-sans antialiased min-h-screen">
-        <PlayerProvider>
-          {children}
-          <PlayerBar />
-        </PlayerProvider>
+        <PlaylistProvider>
+          <PlayerProvider>
+            {children}
+            <PlayerBar />
+            <Toaster position="top-center" richColors closeButton />
+          </PlayerProvider>
+        </PlaylistProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

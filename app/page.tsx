@@ -1,6 +1,7 @@
 import { Navigation } from '@/components/navigation'
 import { SongCard } from '@/components/song-card'
 import { ArtistCard } from '@/components/artist-card'
+import { RecommendedSection } from '@/components/recommended-section'
 import { songs, artists } from '@/data/mockData'
 import { TrendingUp, Sparkles, Users } from 'lucide-react'
 
@@ -30,6 +31,8 @@ export default function HomePage() {
             <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
           </div>
         </section>
+
+        <RecommendedSection />
 
         {/* Trending Songs */}
         <section className="mb-12">

@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from 'react'
 import { songs as allSongs } from '@/data/mockData'
+import { loadAllPlaylists } from '@/lib/playlist/playlistService'
+import { recordPlay } from '@/lib/play-history-storage'
 
 export type PlayerSong = (typeof allSongs)[number]
 
@@ -20,16 +22,13 @@ interface PlayerContextValue {
   duration: number
   volume: number
   isMuted: boolean
-  userPlaylist: PlayerSong[]
-  playSong: (song: PlayerSong) => void
+  playSong: (song: PlayerSong, queue?: PlayerSong[]) => void
   togglePlay: () => void
   playNext: () => void
   playPrevious: () => void
   seek: (time: number) => void
   setVolume: (volume: number) => void
   toggleMute: () => void
-  addToPlaylist: (song: PlayerSong) => void
-  removeFromPlaylist: (songId: string) => void
 }
 
 const PlayerContext = createContext<PlayerContextValue | null>(null)
@@ -41,10 +40,24 @@ export function formatPlayerTime(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, '0')}`
 }
 
+function findQueueForSong(songId: string): PlayerSong[] | null {
+  const { namedPlaylists, quickPlaylist } = loadAllPlaylists()
+
+  const namedMatch = namedPlaylists.find((p) => p.songs.some((s) => s.id === songId))
+  if (namedMatch && namedMatch.songs.length > 0) return namedMatch.songs
+
+  if (quickPlaylist.songs.some((s) => s.id === songId) && quickPlaylist.songs.length > 0) {
+    return quickPlaylist.songs
+  }
+
+  return null
+}
+
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const volumeBeforeMute = useRef(0.75)
   const currentSongRef = useRef<PlayerSong | null>(null)
+  const playbackQueueRef = useRef<PlayerSong[]>(allSongs)
 
   const [currentSong, setCurrentSong] = useState<PlayerSong | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -52,30 +65,30 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [duration, setDuration] = useState(0)
   const [volume, setVolumeState] = useState(0.75)
   const [isMuted, setIsMuted] = useState(false)
-  const [userPlaylist, setUserPlaylist] = useState<PlayerSong[]>(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const saved = localStorage.getItem('userPlaylist')
-      return saved ? JSON.parse(saved) : []
-    } catch { return [] }
-  })
 
   currentSongRef.current = currentSong
 
-  const playNext = useCallback(() => {
+  const playSongAt = useCallback((song: PlayerSong) => {
     const audio = audioRef.current
     if (!audio) return
-    const index = currentSongRef.current
-      ? allSongs.findIndex((s) => s.id === currentSongRef.current!.id)
-      : -1
-    const nextIndex = index < allSongs.length - 1 ? index + 1 : 0
-    const nextSong = allSongs[nextIndex]
-    setCurrentSong(nextSong)
-    audio.src = nextSong.audioUrl
+    setCurrentSong(song)
+    audio.src = song.audioUrl
     audio.currentTime = 0
     setCurrentTime(0)
+    recordPlay(song.id)
     audio.play().catch(() => setIsPlaying(false))
   }, [])
+
+  const playNext = useCallback(() => {
+    const queue = playbackQueueRef.current
+    if (queue.length === 0) return
+
+    const index = currentSongRef.current
+      ? queue.findIndex((s) => s.id === currentSongRef.current!.id)
+      : -1
+    const nextIndex = index < queue.length - 1 ? index + 1 : 0
+    playSongAt(queue[nextIndex])
+  }, [playSongAt])
 
   useEffect(() => {
     const audio = new Audio()
@@ -115,51 +128,66 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [volume, isMuted])
 
-  const playSong = useCallback((song: PlayerSong) => {
-    const audio = audioRef.current
-    if (!audio) return
-    setCurrentSong(song)
-    audio.src = song.audioUrl
-    audio.currentTime = 0
-    setCurrentTime(0)
-    audio.play().catch(() => setIsPlaying(false))
-  }, [])
+  const playSong = useCallback(
+    (song: PlayerSong, queue?: PlayerSong[]) => {
+      if (queue && queue.length > 0) {
+        playbackQueueRef.current = queue
+      } else {
+        const detected = findQueueForSong(song.id)
+        const { quickPlaylist } = loadAllPlaylists()
+        playbackQueueRef.current =
+          detected && detected.length > 0
+            ? detected
+            : quickPlaylist.songs.length > 0
+              ? quickPlaylist.songs
+              : allSongs
+      }
+      playSongAt(song)
+    },
+    [playSongAt]
+  )
 
   const playPrevious = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
+
+    const queue = playbackQueueRef.current
+    if (queue.length === 0) return
+
     if (!currentSongRef.current) {
-      playSong(allSongs[allSongs.length - 1])
+      playSongAt(queue[queue.length - 1])
       return
     }
+
     if (audio.currentTime > 3) {
       audio.currentTime = 0
       setCurrentTime(0)
       return
     }
-    const index = allSongs.findIndex((s) => s.id === currentSongRef.current!.id)
-    const prevIndex = index > 0 ? index - 1 : allSongs.length - 1
-    const prevSong = allSongs[prevIndex]
-    setCurrentSong(prevSong)
-    audio.src = prevSong.audioUrl
-    audio.currentTime = 0
-    setCurrentTime(0)
-    audio.play().catch(() => setIsPlaying(false))
-  }, [playSong])
+
+    const index = queue.findIndex((s) => s.id === currentSongRef.current!.id)
+    const prevIndex = index > 0 ? index - 1 : queue.length - 1
+    playSongAt(queue[prevIndex])
+  }, [playSongAt])
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
+
     if (!currentSongRef.current) {
-      playSong(allSongs[0])
+      const { quickPlaylist } = loadAllPlaylists()
+      const startQueue = quickPlaylist.songs.length > 0 ? quickPlaylist.songs : allSongs
+      playbackQueueRef.current = startQueue
+      playSongAt(startQueue[0])
       return
     }
+
     if (audio.paused) {
       audio.play().catch(() => setIsPlaying(false))
     } else {
       audio.pause()
     }
-  }, [playSong])
+  }, [playSongAt])
 
   const seek = useCallback((time: number) => {
     const audio = audioRef.current
@@ -189,23 +217,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     })
   }, [volume])
 
-  const addToPlaylist = useCallback((song: PlayerSong) => {
-    setUserPlaylist((prev) => {
-      if (prev.find((s) => s.id === song.id)) return prev
-      const updated = [...prev, song]
-      localStorage.setItem('userPlaylist', JSON.stringify(updated))
-      return updated
-    })
-  }, [])
-
-  const removeFromPlaylist = useCallback((songId: string) => {
-    setUserPlaylist((prev) => {
-      const updated = prev.filter((s) => s.id !== songId)
-      localStorage.setItem('userPlaylist', JSON.stringify(updated))
-      return updated
-    })
-  }, [])
-
   const value: PlayerContextValue = {
     currentSong,
     isPlaying,
@@ -213,7 +224,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     duration,
     volume,
     isMuted,
-    userPlaylist,
     playSong,
     togglePlay,
     playNext,
@@ -221,8 +231,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     seek,
     setVolume,
     toggleMute,
-    addToPlaylist,
-    removeFromPlaylist,
   }
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>

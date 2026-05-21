@@ -3,22 +3,25 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, Library, Heart, Music2, Menu, X, ListMusic } from 'lucide-react'
+import { Home, Heart, Music2, Menu, X, Mic2, ListMusic, Library } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { SearchBar } from './search-bar'
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/search', label: 'Search', icon: Search },
-  { href: '/library', label: 'Library', icon: Library },
-  { href: '/liked', label: 'Liked Songs', icon: Heart },
+  { href: '/interviews', label: 'Interviews', icon: Mic2 },
   { href: '/playlist', label: 'Playlist', icon: ListMusic },
-  { href: '/interviews', label: 'Interviews', icon: Music2 },
+  { href: '/library', label: 'Library', icon: Library },
+  { href: '/liked', label: 'Liked', icon: Heart },
 ]
 
 export function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -37,7 +40,7 @@ export function Navigation() {
               href={item.href}
               className={cn(
                 'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                pathname === item.href
+                isActive(item.href)
                   ? 'bg-secondary text-foreground'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               )}
@@ -48,13 +51,11 @@ export function Navigation() {
           ))}
         </nav>
 
-        <div className="hidden flex-1 justify-center lg:flex">
-          <SearchBar />
-        </div>
-
         <button
+          type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -62,9 +63,6 @@ export function Navigation() {
 
       {mobileMenuOpen && (
         <div className="border-t border-border bg-background p-4 md:hidden">
-          <div className="mb-4">
-            <SearchBar />
-          </div>
           <nav className="space-y-1">
             {navItems.map((item) => (
               <Link
@@ -73,7 +71,7 @@ export function Navigation() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-                  pathname === item.href
+                  isActive(item.href)
                     ? 'bg-secondary text-foreground'
                     : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 )}

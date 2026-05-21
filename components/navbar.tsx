@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Heart, Music2, Menu, X, Mic2 } from 'lucide-react'
+import { Home, Heart, Music2, Menu, X, Mic2, ListMusic } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/interviews', label: 'Interviews', icon: Mic2 },
+  { href: '/playlist', label: 'Playlist', icon: ListMusic },
   { href: '/liked', label: 'Liked', icon: Heart },
 ]
 
