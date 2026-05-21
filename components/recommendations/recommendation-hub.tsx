@@ -8,7 +8,11 @@ import { RecommendationRow } from '@/components/recommendations/recommendation-r
 import { ArtistCard } from '@/components/artist-card'
 import Link from 'next/link'
 
-export function RecommendationHub() {
+interface RecommendationHubProps {
+  searchQuery?: string
+}
+
+export function RecommendationHub({ searchQuery }: RecommendationHubProps) {
   const [selectedMood, setSelectedMood] = useState<string | null>(null)
   const { data, loading, moods } = useRecommendations(selectedMood)
 
@@ -31,6 +35,7 @@ export function RecommendationHub() {
         subtitle="Based on your likes and listening history"
         songs={data?.recommendedForYou ?? []}
         loading={loading}
+        searchQuery={searchQuery}
       />
 
       <RecommendationRow
@@ -38,6 +43,7 @@ export function RecommendationHub() {
         subtitle="Songs similar to your latest track"
         songs={data?.becauseYouPlayed ?? []}
         loading={loading}
+        searchQuery={searchQuery}
         emptyMessage="Play a song to unlock this row"
       />
 
@@ -46,6 +52,7 @@ export function RecommendationHub() {
           title="Recently Played"
           songs={data.recentlyPlayed}
           loading={loading}
+          searchQuery={searchQuery}
         />
       )}
 
@@ -54,6 +61,7 @@ export function RecommendationHub() {
         subtitle="Curated by vibe"
         songs={data?.moodMix ?? []}
         loading={loading}
+        searchQuery={searchQuery}
       />
 
       <RecommendationRow
@@ -61,6 +69,7 @@ export function RecommendationHub() {
         subtitle="Most loved on Soundwave"
         songs={data?.trendingNow ?? []}
         loading={loading}
+        searchQuery={searchQuery}
       />
 
       {data?.similarArtists && data.similarArtists.length > 0 && (

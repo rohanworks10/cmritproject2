@@ -190,12 +190,6 @@ export default function PlaylistPage() {
               )}
             </section>
 
-            <p className="mt-8 text-center text-sm text-muted-foreground">
-              Also view playlists in your{' '}
-              <Link href="/library" className="text-primary hover:underline">
-                Library
-              </Link>
-            </p>
           </>
         )}
       </main>

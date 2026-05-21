@@ -1,13 +1,31 @@
+'use client'
+
+import { useMemo, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { SongCard } from '@/components/song-card'
 import { ArtistCard } from '@/components/artist-card'
 import { RecommendedSection } from '@/components/recommended-section'
 import { songs, artists } from '@/data/mockData'
-import { TrendingUp, Sparkles, Users } from 'lucide-react'
+import { TrendingUp, Sparkles, Users, Search, X } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 
 export default function HomePage() {
-  const trending = [...songs].sort((a, b) => b.likes - a.likes)
-  const newReleases = songs.slice(0, 4)
+  const [search, setSearch] = useState('')
+  const searchQuery = search.trim().toLowerCase()
+
+  const searchMatches = (song: { title: string; artist: string }) =>
+    song.title.toLowerCase().includes(searchQuery) ||
+    song.artist.toLowerCase().includes(searchQuery)
+
+  const trending = useMemo(
+    () => [...songs].sort((a, b) => b.likes - a.likes).filter(searchMatches),
+    [searchQuery]
+  )
+
+  const newReleases = useMemo(
+    () => songs.filter(searchMatches).slice(0, 4),
+    [searchQuery]
+  )
 
   return (
     <div className="min-h-screen pb-28">
@@ -26,13 +44,34 @@ export default function HomePage() {
               <p className="max-w-lg text-lg text-muted-foreground text-pretty">
                 Stream millions of songs, discover new artists, and create the perfect playlist for every moment.
               </p>
+              <div className="mt-8 max-w-xl rounded-2xl bg-slate-950/90 p-3 shadow-xl shadow-black/20 ring-1 ring-white/10">
+                <div className="relative flex items-center">
+                  <Search className="pointer-events-none absolute left-4 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search songs, artists, albums..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full rounded-full border border-white/10 bg-slate-900/95 px-12 py-3 text-white placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch('')}
+                      className="absolute right-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-muted-foreground transition hover:bg-white/20"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
             <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
           </div>
         </section>
 
-        <RecommendedSection />
+        <RecommendedSection searchQuery={searchQuery} />
 
         {/* Trending Songs */}
         <section className="mb-12">
@@ -45,11 +84,17 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">Most played tracks this week</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {trending.slice(0, 5).map((song) => (
-              <SongCard key={song.id} song={song} />
-            ))}
-          </div>
+          {trending.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card/40 px-4 py-10 text-center text-sm text-muted-foreground">
+              No results found
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {trending.slice(0, 5).map((song) => (
+                <SongCard key={song.id} song={song} />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Top Charts */}
@@ -63,16 +108,22 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">This week&apos;s hottest tracks</p>
             </div>
           </div>
-          <div className="rounded-xl border border-border bg-card">
-            {trending.map((song, index) => (
-              <div
-                key={song.id}
-                className={index < trending.length - 1 ? 'border-b border-border' : ''}
-              >
-                <SongCard song={song} variant="list" showRank={index + 1} />
-              </div>
-            ))}
-          </div>
+          {trending.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card/40 px-4 py-10 text-center text-sm text-muted-foreground">
+              No results found
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border bg-card">
+              {trending.map((song, index) => (
+                <div
+                  key={song.id}
+                  className={index < trending.length - 1 ? 'border-b border-border' : ''}
+                >
+                  <SongCard song={song} variant="list" showRank={index + 1} />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* New Releases */}
@@ -86,11 +137,17 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">Fresh tracks just for you</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-            {newReleases.map((song) => (
-              <SongCard key={song.id} song={song} />
-            ))}
-          </div>
+          {newReleases.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card/40 px-4 py-10 text-center text-sm text-muted-foreground">
+              No results found
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              {newReleases.map((song) => (
+                <SongCard key={song.id} song={song} />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Popular Artists */}

@@ -10,6 +10,7 @@ interface RecommendationRowProps {
   songs: PlayerSong[]
   loading?: boolean
   emptyMessage?: string
+  searchQuery?: string
 }
 
 export function RecommendationRow({
@@ -18,7 +19,18 @@ export function RecommendationRow({
   songs,
   loading,
   emptyMessage = 'Nothing here yet — play or like songs to personalize',
+  searchQuery,
 }: RecommendationRowProps) {
+  const query = searchQuery?.trim().toLowerCase() || ''
+  const filteredSongs = query
+    ? songs.filter((song) =>
+        song.title.toLowerCase().includes(query) ||
+        song.artist.toLowerCase().includes(query)
+      )
+    : songs
+
+  const noResults = !loading && filteredSongs.length === 0
+
   return (
     <section className="mb-10">
       <div className="mb-4">
@@ -34,13 +46,13 @@ export function RecommendationRow({
             </div>
           ))}
         </div>
-      ) : songs.length === 0 ? (
+      ) : noResults ? (
         <div className="rounded-xl border border-dashed border-border bg-card/40 px-4 py-10 text-center text-sm text-muted-foreground">
-          {emptyMessage}
+          No results found
         </div>
       ) : (
         <div className="flex gap-4">
-          {songs.slice(0, 2).map((song) => (
+          {filteredSongs.slice(0, 2).map((song) => (
             <div key={song.id} className="flex-1 min-w-0">
               <SongCard song={song} variant="compact" />
             </div>
