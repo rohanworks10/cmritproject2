@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
-import { ReviewsSection } from '@/components/reviews-section'
+import { ReviewSection } from '@/components/reviews/review-section'
 import { SongCard } from '@/components/song-card'
 import { getSongById, songs, formatLikes } from '@/data/mockData'
 import { Play, Heart, Share2, MoreHorizontal, Clock, Music, Disc3 } from 'lucide-react'
@@ -140,10 +140,10 @@ Just you and me, meant to be...`}
             </div>
           </section>
 
-          {/* Reviews Section */}
-          <section className="mb-12">
-            <ReviewsSection songId={song.id} songTitle={song.title} />
-          </section>
+            {/* Reviews Section */}
+            <section className="mb-12">
+              <ReviewSection targetId={song.id} targetType="song" />
+            </section>
 
           {/* Related Songs */}
           <section>

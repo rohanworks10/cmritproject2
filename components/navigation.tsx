@@ -1,21 +1,29 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Heart, Music2, Menu, X, Mic2, ListMusic } from 'lucide-react'
+import { Home, Heart, Music2, Menu, X, Mic2, ListMusic, BookOpen, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const navItems = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/interviews', label: 'Interviews', icon: Mic2 },
-  { href: '/playlist', label: 'Playlist', icon: ListMusic },
-  { href: '/liked', label: 'Liked', icon: Heart },
-]
 
 export function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showMyBlogs, setShowMyBlogs] = useState(false)
+
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('soundwave-blog-user') : null
+    setShowMyBlogs(Boolean(stored))
+  }, [])
+
+  const navItems = [
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/interviews', label: 'Interviews', icon: Mic2 },
+    { href: '/playlist', label: 'Playlist', icon: ListMusic },
+    { href: '/liked', label: 'Liked', icon: Heart },
+    { href: '/blog', label: 'Blog', icon: BookOpen },
+    ...(showMyBlogs ? [{ href: '/blog/my', label: 'My Blogs', icon: User }] : []),
+  ]
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'

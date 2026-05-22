@@ -1,6 +1,8 @@
-'use client'
+"use client"
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Spinner } from '@/components/ui/spinner'
 import { Navigation } from '@/components/navigation'
 import { SongCard } from '@/components/song-card'
 import { ArtistCard } from '@/components/artist-card'
@@ -11,6 +13,8 @@ import { Input } from '@/components/ui/input'
 
 export default function HomePage() {
   const [search, setSearch] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+  const router = useRouter()
   const searchQuery = search.trim().toLowerCase()
 
   const searchMatches = (song: { title: string; artist: string }) =>
@@ -51,9 +55,17 @@ export default function HomePage() {
                     placeholder="Search songs, artists, albums..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        if (!search.trim()) return
+                        setIsSearching(true)
+                        router.push(`/search?q=${encodeURIComponent(search.trim())}`)
+                      }
+                    }}
                     className="w-full rounded-full border border-white/10 bg-slate-900/95 px-12 py-3 text-white placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
-                  {search && (
+                  {search && !isSearching && (
                     <button
                       type="button"
                       onClick={() => setSearch('')}
@@ -62,6 +74,11 @@ export default function HomePage() {
                     >
                       <X className="h-4 w-4" />
                     </button>
+                  )}
+                  {isSearching && (
+                    <div className="absolute right-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-muted-foreground">
+                      <Spinner className="h-4 w-4 text-white" />
+                    </div>
                   )}
                 </div>
               </div>

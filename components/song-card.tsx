@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Play, Pause, Heart, MoreHorizontal, ListPlus, ChevronRight } from 'lucide-react'
@@ -112,6 +112,25 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
     e.stopPropagation()
   }
 
+  const [avgRating, setAvgRating] = useState<number | null>(null)
+  const [reviewCount, setReviewCount] = useState<number | null>(null)
+
+  // fetch review summary
+  useEffect(() => {
+    let mounted = true
+    fetch(`/api/reviews?targetId=${encodeURIComponent(song.id)}&targetType=song`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!mounted) return
+        setAvgRating(typeof data.average === 'number' ? data.average : null)
+        setReviewCount(typeof data.totalCount === 'number' ? data.totalCount : null)
+      })
+      .catch(() => {})
+    return () => {
+      mounted = false
+    }
+  }, [song.id])
+
   const playlistDialogEl = (
     <AddToPlaylistDialog
       song={song}
@@ -142,6 +161,16 @@ export function SongCard({ song, variant = 'default', showRank }: SongCardProps)
           <Link href={`/song/${song.id}`} className="block truncate font-medium text-foreground hover:underline">
             {song.title}
           </Link>
+          {avgRating !== null && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className={i < Math.round(avgRating) ? 'text-amber-400' : 'text-border'}>★</span>
+                ))}
+              </div>
+              <span>({reviewCount ?? 0})</span>
+            </div>
+          )}
           <Link href={`/artist/${song.artistId}`} className="block truncate text-sm text-muted-foreground hover:underline">
             {song.artist}
           </Link>

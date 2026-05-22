@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
+import { ReviewSection } from '@/components/reviews/review-section'
 import { getArtistById, getInterviewById, interviews } from '@/data/mockData'
 import { ArrowLeft, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -70,6 +71,11 @@ export default async function InterviewDetailPage({ params }: InterviewPageProps
               </p>
             ))}
           </div>
+
+          {/* Reviews Section */}
+          <section className="mt-8">
+            <ReviewSection targetId={interview.id} targetType="interview" />
+          </section>
         </article>
       </main>
 

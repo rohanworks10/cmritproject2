@@ -1,14 +1,23 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { songs } from '@/data/mockData'
 import { SongCard } from './song-card'
 import { cn } from '@/lib/utils'
 
-export function SearchBar() {
-  const [query, setQuery] = useState('')
+type SearchBarProps = {
+  initialQuery?: string
+  onSubmit?: (query: string) => void
+}
+
+export function SearchBar({ initialQuery, onSubmit }: SearchBarProps) {
+  const [query, setQuery] = useState(initialQuery ?? '')
+
+  useEffect(() => {
+    if (typeof initialQuery === 'string') setQuery(initialQuery)
+  }, [initialQuery])
   const [isFocused, setIsFocused] = useState(false)
 
   const allSongs = songs
@@ -35,6 +44,12 @@ export function SearchBar() {
           placeholder="Search songs, artists, albums..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              onSubmit?.(query)
+            }
+          }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           className="h-12 w-full rounded-full border-0 bg-transparent pl-12 pr-10 text-foreground placeholder:text-muted-foreground focus-visible:ring-0"

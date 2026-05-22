@@ -1,3 +1,7 @@
+"use client"
+
+import { useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { SearchBar } from '@/components/search-bar'
 import { SongCard } from '@/components/song-card'
@@ -6,6 +10,9 @@ import { songs, artists } from '@/data/mockData'
 import { Search, TrendingUp, Users, Music } from 'lucide-react'
 
 export default function SearchPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const q = searchParams?.get('q') ?? ''
   const genres = [
     { name: 'Pop', color: 'from-pink-500 to-rose-500' },
     { name: 'Hip Hop', color: 'from-amber-500 to-orange-500' },
@@ -30,7 +37,10 @@ export default function SearchPage() {
           <h1 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl">Search</h1>
           <p className="mb-8 text-muted-foreground">Find your favorite songs, artists, and albums</p>
           <div className="mx-auto max-w-xl">
-            <SearchBar />
+            <SearchBar
+              initialQuery={q}
+              onSubmit={(val) => router.push(`/search?q=${encodeURIComponent(val)}`)}
+            />
           </div>
         </section>
 
