@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { addBlogPost, getPublishedBlogPosts, getSubscribedAuthorIds } from '@/lib/blog-storage'
+import { addBlogPost, getPublishedBlogPosts, getSubscribedAuthorIds, getAllBlogPosts } from '@/lib/blog-storage'
 
 export async function GET(request: Request) {
   try {
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       .map((authorId) => authorId.trim())
       .filter(Boolean)
 
-    let posts = getPublishedBlogPosts()
+    let posts = authorIds && authorIds.length ? getAllBlogPosts() : getPublishedBlogPosts()
 
     if (authorIds && authorIds.length) {
       posts = posts.filter((post) => authorIds.includes(post.authorId))
@@ -56,25 +56,33 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    console.log('[API] POST /api/blog body:', body)
     const { title, excerpt, coverImage, content, tags, category, rating, author, authorId, authorAvatar, status } = body || {}
 
-    if (!title || !excerpt || !content || !category || typeof rating !== 'number' || !author || !authorId) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
-    }
+    // Apply sensible defaults for missing fields instead of rejecting
+    const safeTitle = String(title || 'Untitled').trim()
+    const safeExcerpt = String(excerpt || '').trim()
+    const safeContent = String(content || '')
+    const safeTags = Array.isArray(tags) ? tags.map((tag) => String(tag).trim()) : []
+    const safeCategory = String(category || 'Uncategorized')
+    const safeRating = typeof rating === 'number' && !Number.isNaN(rating) ? Number(rating) : 0
+    const safeAuthor = String(author || 'You')
+    const safeAuthorId = String(authorId || 'you')
 
     const post = addBlogPost({
-      title: String(title).trim(),
-      excerpt: String(excerpt).trim(),
+      title: safeTitle,
+      excerpt: safeExcerpt,
       coverImage: coverImage ? String(coverImage).trim() : undefined,
-      content: String(content),
-      tags: Array.isArray(tags) ? tags.map((tag) => String(tag).trim()) : [],
-      category: String(category),
-      rating: Number(rating),
-      author: String(author),
-      authorId: String(authorId),
+      content: safeContent,
+      tags: safeTags,
+      category: safeCategory,
+      rating: safeRating,
+      author: safeAuthor,
+      authorId: safeAuthorId,
       authorAvatar: authorAvatar ? String(authorAvatar) : undefined,
       status: status === 'draft' ? 'draft' : 'published',
     })
+    console.log('[API] created post', post.slug)
 
     return NextResponse.json({ success: true, data: post })
   } catch (err) {

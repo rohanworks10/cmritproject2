@@ -91,46 +91,51 @@ export default function BlogEditor() {
   }
 
   const handleSubmit = async (targetStatus: 'draft' | 'published') => {
-    if (!title.trim()) {
-      setMessage('Please add a title.')
-      return
-    }
-    if (!contentHtml.trim() || contentHtml === '<p></p>') {
-      setMessage('Write some content before saving.')
-      return
-    }
-    if (rating < 1) {
-      setMessage('Choose a star rating for this post.')
-      return
-    }
+    console.log('[BlogEditor] handleSubmit called', { targetStatus, title, category, rating })
+    // Apply sensible defaults instead of blocking publish
+    const safeTitle = title.trim() || 'Untitled'
+    const safeRating = typeof rating === 'number' && rating >= 0 ? rating : 0
+    const safeTags = Array.isArray(tags) ? tags : []
+    setStatus(targetStatus)
     setSubmitting(true)
     setMessage('')
     const excerpt = textContent.trim().slice(0, 140)
     const body = {
-      title,
+      title: safeTitle,
       excerpt,
       coverImage: coverUrl || undefined,
-      content: contentHtml,
-      tags,
+      content: contentHtml || '',
+      tags: safeTags,
       category,
-      rating,
+      rating: safeRating,
       author: 'You',
       authorId: 'you',
       authorAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop',
       status: targetStatus,
     }
+    console.log('[BlogEditor] sending POST /api/blog', body)
 
     const response = await fetch('/api/blog', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
+    console.log('[BlogEditor] fetch completed', { ok: response.ok, status: response.status })
     const result = await response.json()
+    console.log('[BlogEditor] response json', result)
     setSubmitting(false)
 
     if (!response.ok || !result.success) {
       setMessage(result.error || 'Unable to save your post.')
       return
+    }
+
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('soundwave:blog:created', { detail: result.data }))
+      }
+    } catch (e) {
+      // ignore
     }
 
     router.push(`/blog/${result.data.slug}`)

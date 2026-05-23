@@ -5,6 +5,7 @@ import { SongCard } from '@/components/song-card'
 import { artists, getArtistById, getSongsByArtistId } from '@/data/mockData'
 import { Play, Shuffle, Heart, Share2, MoreHorizontal, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import FollowButton from '@/components/artist/follow-button'
 
 interface ArtistPageProps {
   params: Promise<{ id: string }>
@@ -74,10 +75,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
                 <Shuffle className="h-5 w-5" />
                 Shuffle
               </Button>
-              <Button size="lg" variant="ghost" className="gap-2 text-muted-foreground">
-                <Heart className="h-5 w-5" />
-                Follow
-              </Button>
+              <FollowButton artistId={artist.id} artistName={artist.name} />
               <Button size="icon" variant="ghost" className="text-muted-foreground">
                 <Share2 className="h-5 w-5" />
               </Button>

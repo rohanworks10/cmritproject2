@@ -21,7 +21,7 @@ export default function MyBlogsPage() {
     }
 
     const fetchPosts = async () => {
-      const response = await fetch('/api/blog')
+      const response = await fetch(`/api/blog?authorIds=${authorId}`)
       const result = await response.json()
       if (result.success) {
         setPosts(result.data.filter((post: any) => post.authorId === authorId))
@@ -29,6 +29,21 @@ export default function MyBlogsPage() {
       setLoading(false)
     }
     fetchPosts()
+
+    const handleNewPost = (e: any) => {
+      const post = e?.detail
+      if (!post) return
+      if (post.authorId !== authorId) return
+      setPosts((current) => {
+        if (current.find((p) => p.slug === post.slug)) return current
+        return [post, ...current]
+      })
+    }
+    window.addEventListener('soundwave:blog:created', handleNewPost as EventListener)
+
+    return () => {
+      window.removeEventListener('soundwave:blog:created', handleNewPost as EventListener)
+    }
   }, [])
 
   const myPosts = useMemo(() => posts, [posts])

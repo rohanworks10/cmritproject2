@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url)
     const targetId = url.searchParams.get('targetId') || url.searchParams.get('itemId') || ''
     const targetType = url.searchParams.get('targetType') || 'song'
-    if (!targetId) return NextResponse.json({ reviews: [], average: 0, count: 0, ratingBreakdown: {} })
+    if (!targetId) return NextResponse.json({ reviews: [], average: 0, totalCount: 0, ratingBreakdown: {} })
     const reviews = getReviewsForTarget(targetType, targetId)
     const avg = getAverageForTarget(targetType, targetId)
     return NextResponse.json({ reviews, average: avg.average, totalCount: avg.count, ratingBreakdown: avg.breakdown })
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       comment: text.trim(),
     })
     const avg = getAverageForTarget(targetType, targetId)
-    return NextResponse.json({ review: created, average: avg.average, totalCount: avg.count, ratingBreakdown: avg.breakdown })
+    return NextResponse.json({ success: true, review: created, average: avg.average, totalCount: avg.count, ratingBreakdown: avg.breakdown })
   } catch (err) {
     return NextResponse.json({ error: 'Failed to create review' }, { status: 500 })
   }

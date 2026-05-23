@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "authorId": "artist-1",
+    "subscriberIds": [
+      "you"
+    ]
+  }
+]

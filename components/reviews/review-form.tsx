@@ -61,7 +61,8 @@ export function ReviewForm({ targetId, targetType = 'song', onSubmitted, itemId,
           setTitle('')
           setRating(0)
           window.dispatchEvent(new CustomEvent('reviews-changed'))
-          onSubmitted?.()
+          // pass created review to parent so lists can update optimistically
+          onSubmitted?.(data.review)
         }
       }
     } catch (err) {

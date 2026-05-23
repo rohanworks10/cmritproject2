@@ -38,7 +38,8 @@ export function ReviewList({
       const data = await res.json()
       setReviews(data.reviews ?? [])
       setAverage(data.average ?? 0)
-      setTotalCount(data.totalCount ?? 0)
+      // support older responses that used `count`
+      setTotalCount(typeof data.totalCount === 'number' ? data.totalCount : (typeof data.count === 'number' ? data.count : 0))
     } catch (e) {
       setReviews([])
     } finally {
